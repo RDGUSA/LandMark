@@ -9,6 +9,10 @@
     <RootNamespace>LandMark</RootNamespace>
     <AssemblyName>LandMark</AssemblyName>
     <Product>LandMark</Product>
+    <!-- Release version; shown in About and in the exe's file properties, and matches the GitHub release tag. -->
+    <Version>26.11.2001</Version>
+    <Company>RDG Planning &amp; Design, Inc</Company>
+    <Copyright>Copyright (c) 2026 RDG Planning &amp; Design, Inc</Copyright>
     <!-- LM badge (True Black, RDG Red bars, white point) at 16-256 px; Assets\app-256.png is the large version. -->
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
