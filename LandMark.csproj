@@ -29,4 +29,32 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
   </ItemGroup>
 
+  <!--
+    Internal code signing, the same Sign.bat step as Atlas and RDG Model QC. After a single-file publish, LandMark.exe
+    is copied to publish-internal\ and that copy is signed with this machine's Sign.bat. publish\LandMark.exe stays
+    unsigned for the public GitHub release, because the certificate is internal only. publish-internal\ is git-ignored.
+    Skipped when Sign.bat isn't on the machine, or with -p:SignOutput=false. A failed signature deletes the copy and
+    stops the publish, so publish-internal\ never holds an unsigned exe.
+  -->
+  <PropertyGroup>
+    <SignOutput Condition="'$(SignOutput)' == ''">true</SignOutput>
+    <SignScript Condition="'$(SignScript)' == ''">C:\users\$(USERNAME)\desktop\Sign.bat</SignScript>
+    <InternalPublishDir Condition="'$(InternalPublishDir)' == ''">$(MSBuildProjectDirectory)\publish-internal\</InternalPublishDir>
+  </PropertyGroup>
+
+  <Target Name="SignInternalCopy" AfterTargets="Publish" Condition="'$(PublishSingleFile)' == 'true' And '$(SignOutput)' == 'true'">
+    <Message Importance="high" Condition="!Exists('$(SignScript)')" Text="LandMark: $(SignScript) isn't on this machine; no signed internal copy was made." />
+    <PropertyGroup>
+      <_InternalExe>$(InternalPublishDir)$(AssemblyName).exe</_InternalExe>
+    </PropertyGroup>
+    <Delete Files="$(_InternalExe)" Condition="Exists('$(SignScript)')" />
+    <Copy SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFolder="$(InternalPublishDir)" Condition="Exists('$(SignScript)')" />
+    <Exec Command="call &quot;$(SignScript)&quot; &quot;$(_InternalExe)&quot;" Condition="Exists('$(SignScript)')" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_SignExitCode" />
+    </Exec>
+    <Delete Files="$(_InternalExe)" Condition="'$(_SignExitCode)' != '' And '$(_SignExitCode)' != '0'" />
+    <Error Condition="'$(_SignExitCode)' != '' And '$(_SignExitCode)' != '0'" Text="Signing $(_InternalExe) failed (exit code $(_SignExitCode)); the unsigned copy was removed." />
+    <Message Importance="high" Condition="'$(_SignExitCode)' == '0'" Text="LandMark: signed internal copy -> $(_InternalExe)" />
+  </Target>
+
 </Project>

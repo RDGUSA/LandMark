@@ -2,6 +2,8 @@
 bin/
 obj/
 publish/
+# Internally signed exe (RDG certificate); never committed or attached to public releases
+publish-internal/
 
 # Visual Studio / Rider user files
 .vs/

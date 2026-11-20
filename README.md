@@ -447,6 +447,10 @@ dotnet publish -p:PublishProfile=SingleFile
 The result is `publish\LandMark.exe` (settings in `Properties\PublishProfiles\SingleFile.pubxml`). It's
 framework-dependent, so it uses the .NET 10 Desktop Runtime installed on the PC.
 
+With the internal signing script (`Desktop\Sign.bat`) on the machine, publishing also writes a signed copy
+to `publish-internal\LandMark.exe` for internal use. `publish\LandMark.exe` stays unsigned. Pass
+`-p:SignOutput=false` to skip the signed copy.
+
 ### Project layout
 
 - `Markdown/`: the parser (block structure, then inline formatting) and the document model, plus the editor's syntax
