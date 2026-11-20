@@ -1,0 +1,765 @@
+<Window x:Class="LandMark.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LandMark"
+        xmlns:controls="clr-namespace:LandMark.Controls"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="LandMark" Icon="Assets/app.ico" Width="1180" Height="760" MinWidth="640" MinHeight="400"
+        WindowStartupLocation="CenterScreen" AllowDrop="True"
+        PreviewDragOver="Window_PreviewDragOver" PreviewDrop="Window_PreviewDrop" Closing="Window_Closing">
+
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.New" Executed="New_Executed"/>
+        <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed"/>
+        <CommandBinding Command="ApplicationCommands.Save" Executed="Save_Executed"/>
+        <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveAs_Executed"/>
+        <CommandBinding Command="local:AppCommands.ExportDocx" Executed="ExportDocx_Executed"/>
+        <CommandBinding Command="local:AppCommands.ExportText" Executed="ExportText_Executed"/>
+        <CommandBinding Command="local:AppCommands.ExportPdf" Executed="ExportPdf_Executed"/>
+        <CommandBinding Command="local:AppCommands.Exit" Executed="Exit_Executed"/>
+        <CommandBinding Command="local:AppCommands.ShowInExplorer" Executed="ShowInExplorer_Executed" CanExecute="ShowInExplorer_CanExecute"/>
+        <CommandBinding Command="local:AppCommands.CopyForEmail" Executed="CopyForEmail_Executed"/>
+        <CommandBinding Command="local:AppCommands.CopyPlainText" Executed="CopyPlainText_Executed"/>
+        <CommandBinding Command="local:AppCommands.Find" Executed="Find_Executed"/>
+        <CommandBinding Command="local:AppCommands.FindNext" Executed="FindNext_Executed"/>
+        <CommandBinding Command="local:AppCommands.FindPrevious" Executed="FindPrevious_Executed"/>
+        <CommandBinding Command="local:AppCommands.Replace" Executed="Replace_Executed"/>
+        <CommandBinding Command="local:AppCommands.EditorOnlyView" Executed="EditorOnlyView_Executed"/>
+        <CommandBinding Command="local:AppCommands.SplitView" Executed="SplitView_Executed"/>
+        <CommandBinding Command="local:AppCommands.PreviewOnlyView" Executed="PreviewOnlyView_Executed"/>
+        <CommandBinding Command="local:AppCommands.ToggleOutline" Executed="ToggleOutline_Executed"/>
+        <CommandBinding Command="local:AppCommands.ToggleWordWrap" Executed="ToggleWordWrap_Executed"/>
+        <CommandBinding Command="local:AppCommands.ToggleSyntaxColors" Executed="ToggleSyntaxColors_Executed"/>
+        <CommandBinding Command="local:AppCommands.ZoomIn" Executed="ZoomIn_Executed"/>
+        <CommandBinding Command="local:AppCommands.ZoomOut" Executed="ZoomOut_Executed"/>
+        <CommandBinding Command="local:AppCommands.ZoomReset" Executed="ZoomReset_Executed"/>
+        <CommandBinding Command="local:AppCommands.CustomizeStyles" Executed="CustomizeStyles_Executed"/>
+        <CommandBinding Command="local:AppCommands.SetDefaultStyle" Executed="SetDefaultStyle_Executed"/>
+        <CommandBinding Command="local:AppCommands.ToggleCheatSheet" Executed="ToggleCheatSheet_Executed"/>
+        <CommandBinding Command="local:AppCommands.About" Executed="About_Executed"/>
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <KeyBinding Command="ApplicationCommands.SaveAs" Gesture="Ctrl+Shift+S"/>
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <controls:OutlineIndentConverter x:Key="OutlineIndent"/>
+
+        <Style x:Key="Icon" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Drop-down menu items. Fluent's template draws the check mark in its own column to the left of the
+             icon column, so checks and icons never line up (and a menu with any checkable item pushes every icon
+             right of its submenu headers' icons). Here the check and the icon share one column, in the same shared
+             size group the Fluent submenu-header template uses, so every glyph and every label lines up. -->
+        <ControlTemplate x:Key="MenuLeafTemplate" TargetType="MenuItem">
+            <Border x:Name="Border" Margin="4,1" CornerRadius="4" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                <Grid Margin="8,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Hidden (not collapsed) on unchecked checkable items, so checking one doesn't shift its label. -->
+                    <TextBlock x:Name="Check" Style="{StaticResource Icon}" Text="&#xE73E;" Margin="0,0,6,0" Visibility="Collapsed"/>
+                    <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                      HorizontalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                    <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
+                                      Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                    <TextBlock x:Name="InputGestureText" Grid.Column="2" Text="{TemplateBinding InputGestureText}" FontSize="11"
+                               Margin="25,0,0,0" VerticalAlignment="Bottom"
+                               Foreground="{DynamicResource TextFillColorDisabledBrush}"/>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource MenuBarItemBackgroundSelected}"/>
+                </Trigger>
+                <Trigger Property="Icon" Value="{x:Null}">
+                    <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+                <Trigger Property="IsCheckable" Value="True">
+                    <Setter TargetName="Check" Property="Visibility" Value="Hidden"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+                <Trigger Property="InputGestureText" Value="">
+                    <Setter TargetName="InputGestureText" Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+            <Style.Triggers>
+                <Trigger Property="Role" Value="SubmenuItem">
+                    <Setter Property="Template" Value="{StaticResource MenuLeafTemplate}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Export items: the label, then the file extension (from Tag) right-aligned, so the extensions line up
+             with each other just left of the shortcut column. -->
+        <Style x:Key="ExportItem" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <AccessText Text="{Binding}"/>
+                            <TextBlock Grid.Column="1" Margin="24,0,0,0"
+                                       Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=MenuItem}}"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </Grid>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Yellow refresh button shown when the open file was changed outside LandMark and not yet reloaded. -->
+        <Style x:Key="ReloadButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="Margin" Value="0,-4,4,-4"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <!-- A template, not a glyph as Content: one element can't be shared by the two buttons using this style.
+                 The text content is what screen readers announce; the template draws the glyph instead. -->
+            <Setter Property="Content" Value="Reload from disk"/>
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Style="{StaticResource Icon}" FontSize="14" FontWeight="Bold" Text="&#xE72C;" Foreground="#E5A800"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Beside it, while there are unsaved changes too: merge the file's changes with them. -->
+        <Style x:Key="MergeButton" TargetType="Button" BasedOn="{StaticResource ReloadButton}">
+            <Setter Property="Content" Value="Merge with the file on disk"/>
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Style="{StaticResource Icon}" FontSize="14" FontWeight="Bold" Text="&#xEA3C;" Foreground="#E5A800"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="CardSubtitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+
+        <!-- Borderless editor that fills its card; scroll bars keep the Fluent look. -->
+        <Style x:Key="EditorTextBox" TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <ScrollViewer x:Name="PART_ContentHost" Padding="{TemplateBinding Padding}"
+                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" Margin="6,2,6,0" Background="Transparent">
+            <!-- Compact File/Edit/View headers. The Fluent template hard-codes tall padding, so these get their own
+                 template; the drop-down items inside keep the Fluent style. -->
+            <Menu.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="Padding" Value="8,3"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="MenuItem">
+                                <Grid>
+                                    <!-- Highlight = the theme's text color at low opacity, so it reads in light and dark mode. -->
+                                    <Border x:Name="Highlight" CornerRadius="4" Opacity="0"
+                                            Background="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    <Border x:Name="Chip" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Follows Windows' menu animation setting (None when animations are off). -->
+                                    <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="2" AllowsTransparency="True"
+                                           Focusable="False" PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}"
+                                           IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
+                                        <Border Margin="0,0,12,12" Padding="4" CornerRadius="8" BorderThickness="1"
+                                                Grid.IsSharedSizeScope="True"
+                                                Background="{DynamicResource FlyoutBackground}"
+                                                BorderBrush="{DynamicResource FlyoutBorderBrush}"
+                                                Effect="{DynamicResource FlyoutShadow}">
+                                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"
+                                                            KeyboardNavigation.TabNavigation="Cycle"/>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="Highlight" Property="Opacity" Value="0.12"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSubmenuOpen" Value="True">
+                                        <Setter TargetName="Highlight" Property="Opacity" Value="0.16"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Menu.ItemContainerStyle>
+            <MenuItem x:Name="FileMenu" Header="_File" SubmenuOpened="FileMenu_SubmenuOpened">
+                <MenuItem Header="_New" Command="ApplicationCommands.New">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xEA1A;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Open…" Command="ApplicationCommands.Open">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE838;"/></MenuItem.Icon>
+                </MenuItem>
+                <!-- The file list above the separator is rebuilt each time the File menu opens. -->
+                <MenuItem x:Name="RecentMenu" Header="Open _Recent">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE81C;"/></MenuItem.Icon>
+                    <Separator x:Name="RecentListSeparator"/>
+                    <MenuItem Header="_Clear Recent Files" Click="ClearRecentFiles_Click"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="_Save" Command="ApplicationCommands.Save">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE74E;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Save _As…" Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE792;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Show in Fi_le Explorer" Command="local:AppCommands.ShowInExplorer"
+                          ToolTip="Open the folder containing this document">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8B7;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="_Export">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8E5;"/></MenuItem.Icon>
+                    <MenuItem Header="P_DF Document" Tag=".pdf" Style="{StaticResource ExportItem}" Command="local:AppCommands.ExportPdf">
+                        <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xEA90;"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Word Document" Tag=".docx" Style="{StaticResource ExportItem}" Command="local:AppCommands.ExportDocx">
+                        <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xF56E;"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Plain Text" Tag=".txt" Style="{StaticResource ExportItem}" Command="local:AppCommands.ExportText">
+                        <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8E4;"/></MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="local:AppCommands.Exit" InputGestureText="Alt+F4">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE894;"/></MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" Command="ApplicationCommands.Undo" CommandTarget="{Binding ElementName=Editor}">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE7A7;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Redo" Command="ApplicationCommands.Redo" CommandTarget="{Binding ElementName=Editor}">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE7A6;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Cu_t" Command="ApplicationCommands.Cut" CommandTarget="{Binding ElementName=Editor}">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8C6;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Copy" Command="ApplicationCommands.Copy" CommandTarget="{Binding ElementName=Editor}">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8C8;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Paste" Command="ApplicationCommands.Paste" CommandTarget="{Binding ElementName=Editor}">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE77F;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Select _All" Command="ApplicationCommands.SelectAll" CommandTarget="{Binding ElementName=Editor}">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8B3;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <!-- Work from either pane: they search the Markdown, and show the matches in the editor or the preview. -->
+                <MenuItem Header="_Find…" Command="local:AppCommands.Find">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE721;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Find _Next" Command="local:AppCommands.FindNext"/>
+                <MenuItem Header="Find Pre_vious" Command="local:AppCommands.FindPrevious"/>
+                <MenuItem Header="Rep_lace…" Command="local:AppCommands.Replace">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8AB;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Copy for _Email" Command="local:AppCommands.CopyForEmail">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE715;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Copy as Plain Te_xt" Command="local:AppCommands.CopyPlainText">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8E4;"/></MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="_View">
+                <!-- IsCheckable reserves room for the check mark (see MenuLeafTemplate); the handlers set IsChecked. -->
+                <MenuItem x:Name="OutlineItem" Header="_Outline" Command="local:AppCommands.ToggleOutline" IsCheckable="True"
+                          ToolTip="List the document's headings on the left; click one to go to it">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8A4;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="CheatSheetItem" Header="_Markdown Cheat Sheet" Command="local:AppCommands.ToggleCheatSheet" IsCheckable="True"
+                          ToolTip="Explain each Markdown symbol in a panel on the right; click an example to insert it">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE897;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem x:Name="EditorOnlyItem" Header="_Editor Only" Command="local:AppCommands.EditorOnlyView" IsCheckable="True"/>
+                <MenuItem x:Name="SplitItem" Header="_Split" Command="local:AppCommands.SplitView" IsCheckable="True" IsChecked="True"/>
+                <MenuItem x:Name="PreviewOnlyItem" Header="_Preview Only" Command="local:AppCommands.PreviewOnlyView" IsCheckable="True"/>
+                <Separator/>
+                <MenuItem x:Name="WordWrapItem" Header="_Word Wrap" Command="local:AppCommands.ToggleWordWrap" IsCheckable="True" IsChecked="True"/>
+                <MenuItem x:Name="SyntaxColorsItem" Header="Syntax _Colors" Command="local:AppCommands.ToggleSyntaxColors" IsCheckable="True"
+                          ToolTip="Color headings, lists, code, links and other Markdown in the editor"/>
+                <Separator/>
+                <MenuItem Header="Zoom _In" Command="local:AppCommands.ZoomIn">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE8A3;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Zoom _Out" Command="local:AppCommands.ZoomOut">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE71F;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Reset Zoom" Command="local:AppCommands.ZoomReset">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE71E;"/></MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
+            <!-- The style list above the separator is rebuilt each time the menu opens. -->
+            <MenuItem x:Name="FormatMenu" Header="F_ormat" SubmenuOpened="FormatMenu_SubmenuOpened">
+                <Separator x:Name="StyleListSeparator"/>
+                <MenuItem Header="_Customize Styles…" Command="local:AppCommands.CustomizeStyles">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE790;"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Set Current Style as _Default" Command="local:AppCommands.SetDefaultStyle">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE734;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <!-- Page setup for PDF and DOCX export. -->
+                <MenuItem Header="Page _Margins">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xF574;"/></MenuItem.Icon>
+                    <MenuItem x:Name="MarginsNarrowItem" Header="_Narrow (0.25&quot;)" Tag="Narrow" IsCheckable="True" Click="Margins_Click"
+                              ToolTip="0.25 inch on every side. Fine on screen; some printers can't print that close to the edge"/>
+                    <MenuItem x:Name="MarginsWideItem" Header="_Wide (1&quot;)" Tag="Wide" IsCheckable="True" Click="Margins_Click"
+                              ToolTip="1 inch on every side, for PDF and DOCX export"/>
+                </MenuItem>
+                <!-- The app's own look, separate from the document styles above. -->
+                <MenuItem Header="App _Theme">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE706;"/></MenuItem.Icon>
+                    <MenuItem x:Name="ThemeSystemItem" Header="_System" Tag="System" IsCheckable="True" Click="Theme_Click"
+                              ToolTip="Follow the Windows light/dark setting"/>
+                    <MenuItem x:Name="ThemeLightItem" Header="_Light" Tag="Light" IsCheckable="True" Click="Theme_Click"/>
+                    <MenuItem x:Name="ThemeDarkItem" Header="_Dark" Tag="Dark" IsCheckable="True" Click="Theme_Click"/>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="_Help">
+                <MenuItem Header="_Open .md Files with LandMark…" Click="FileAssociation_Click"
+                          ToolTip="Register LandMark with Windows so double-clicking a Markdown file opens it here">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE7AC;"/></MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="_About LandMark" Command="local:AppCommands.About">
+                    <MenuItem.Icon><TextBlock Style="{StaticResource Icon}" Text="&#xE946;"/></MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <!-- Footer -->
+        <DockPanel DockPanel.Dock="Bottom" Margin="18,6,18,8">
+            <!-- RDG ellipsis from the brand toolkit (RDG Red, the only color used), aligned to the bottom-right margin. -->
+            <Image DockPanel.Dock="Right" Source="Assets/ellipsis-red.png" Width="30" VerticalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="HighQuality" ToolTip="RDG Planning &amp; Design"/>
+            <!-- Unsaved changes, the same as the dot in the editor header (which Preview Only hides). -->
+            <Border x:Name="FooterUnsavedDot" DockPanel.Dock="Left" Background="Transparent" Padding="0,4,6,4"
+                    VerticalAlignment="Center" Visibility="Collapsed" ToolTip="Unsaved changes. Press Ctrl+S to save.">
+                <Ellipse Width="8" Height="8" Fill="#FFC83D" Stroke="#D9A000" StrokeThickness="1"/>
+            </Border>
+            <!-- Shows only where the document lives: its file path, or "New document". Right-click copies the path.
+                 Left-aligned with a transparent background, so only the text itself takes the right-click. -->
+            <TextBlock x:Name="StatusText" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" Background="Transparent"
+                       MouseRightButtonUp="StatusText_MouseRightButtonUp"/>
+        </DockPanel>
+
+        <!-- Editor and preview cards -->
+        <Grid Margin="12,6,12,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition x:Name="EditorColumn"/>
+                <ColumnDefinition x:Name="SplitterColumn" Width="8"/>
+                <ColumnDefinition x:Name="PreviewColumn"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <!-- Find and Replace (Ctrl+F, Ctrl+H). Above the editor, which gives up the height; the preview keeps the
+                 full height beside it. In Preview Only it moves above the preview (PlaceFindBar). Docked rather than
+                 floating: WPF can't draw over the preview's web view. It searches the Markdown; matches are selected
+                 in the editor and highlighted in the preview. -->
+            <Border x:Name="FindBar" Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,0,6" Padding="4"
+                    Visibility="Collapsed" PreviewKeyDown="FindBar_PreviewKeyDown">
+                <Border.Resources>
+                    <Style x:Key="FindIconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Padding" Value="8"/>
+                        <Setter Property="Margin" Value="2,0,0,0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                    <Style x:Key="FindToggle" TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                        <Setter Property="Padding" Value="6,5"/>
+                        <Setter Property="Margin" Value="4,0,0,0"/>
+                        <Setter Property="MinWidth" Value="30"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Focusable" Value="False"/>
+                    </Style>
+                    <Style x:Key="FindPlaceholder" TargetType="TextBlock">
+                        <Setter Property="IsHitTestVisible" Value="False"/>
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Setter Property="Margin" Value="12,0,0,0"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
+                    </Style>
+                </Border.Resources>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- The search and replace boxes take all the width the fixed-size buttons leave. -->
+                        <ColumnDefinition Width="*" MinWidth="100"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Button x:Name="ReplaceToggle" Style="{StaticResource FindIconButton}" Margin="0,0,4,0" Focusable="False"
+                            Click="ReplaceToggle_Click" ToolTip="Show or hide Replace (Ctrl+H)">
+                        <TextBlock x:Name="ReplaceToggleIcon" Style="{StaticResource Icon}" FontSize="12" Text="&#xE76C;"/>
+                    </Button>
+
+                    <Grid Grid.Column="1">
+                        <TextBox x:Name="FindBox" TextChanged="FindBox_TextChanged"/>
+                        <TextBlock Text="Find">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource FindPlaceholder}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text.Length, ElementName=FindBox}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <ToggleButton x:Name="MatchCaseToggle" Style="{StaticResource FindToggle}" Content="Aa"
+                                      ToolTip="Match case (Alt+C)" Click="FindOption_Click"/>
+                        <ToggleButton x:Name="WholeWordToggle" Style="{StaticResource FindToggle}"
+                                      ToolTip="Whole words only (Alt+W)" Click="FindOption_Click">
+                            <TextBlock Text="ab" TextDecorations="Underline"/>
+                        </ToggleButton>
+                        <TextBlock x:Name="FindCountText" MinWidth="60" Margin="10,0,4,0" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <Button Style="{StaticResource FindIconButton}" Command="local:AppCommands.FindPrevious" Focusable="False"
+                                ToolTip="Previous match (Shift+Enter, Shift+F3)">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="12" Text="&#xE74A;"/>
+                        </Button>
+                        <Button Style="{StaticResource FindIconButton}" Command="local:AppCommands.FindNext" Focusable="False"
+                                ToolTip="Next match (Enter, F3)">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="12" Text="&#xE74B;"/>
+                        </Button>
+                    </StackPanel>
+
+                    <Button Grid.Column="4" Style="{StaticResource FindIconButton}" Click="CloseFind_Click" Focusable="False"
+                            ToolTip="Close (Esc)">
+                        <TextBlock Style="{StaticResource Icon}" FontSize="12" Text="&#xE711;"/>
+                    </Button>
+
+                    <!-- Replace row, shown by Ctrl+H or the arrow on the left. -->
+                    <Grid x:Name="ReplaceRow" Grid.Row="1" Grid.Column="1" Margin="0,4,0,0" Visibility="Collapsed">
+                        <TextBox x:Name="ReplaceBox"/>
+                        <TextBlock Text="Replace with">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource FindPlaceholder}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text.Length, ElementName=ReplaceBox}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <StackPanel x:Name="ReplaceButtons" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="3" Orientation="Horizontal"
+                                Margin="4,4,0,0" Visibility="Collapsed">
+                        <Button Content="Replace" Click="ReplaceOne_Click" Focusable="False" Padding="12,5"
+                                ToolTip="Replace this match and go to the next one (Enter in the Replace box)"/>
+                        <Button Content="Replace All" Click="ReplaceAll_Click" Focusable="False" Padding="12,5" Margin="4,0,0,0"
+                                ToolTip="Replace every match in the document (Ctrl+Alt+Enter); Ctrl+Z undoes it"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Outline: the cheat sheet's mirror image on the left. The outer border's width animates to slide it
+                 in; the card is anchored to the right edge so it appears from behind the editor. -->
+            <Border x:Name="OutlinePanel" Grid.RowSpan="2" Width="0" ClipToBounds="True" Visibility="Collapsed">
+                <Border Style="{StaticResource Card}" Width="280" Margin="0,0,8,0" HorizontalAlignment="Right">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="16,10,8,2">
+                            <Button DockPanel.Dock="Right" Command="local:AppCommands.ToggleOutline" ToolTip="Close (Ctrl+Shift+O)"
+                                    Padding="6" Background="Transparent" BorderThickness="0">
+                                <TextBlock Style="{StaticResource Icon}" FontSize="12" Text="&#xE711;"/>
+                            </Button>
+                            <TextBlock Style="{StaticResource CardTitle}" Text="Outline"/>
+                        </DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Style="{StaticResource CardSubtitle}" Margin="16,0,16,8"
+                                   Text="Click a heading to go to it." TextWrapping="Wrap"/>
+                        <Grid>
+                            <ListBox x:Name="OutlineList" Background="Transparent" BorderThickness="0" Padding="4,0,4,8"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     PreviewMouseLeftButtonUp="OutlineList_PreviewMouseLeftButtonUp" KeyDown="OutlineList_KeyDown">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                        <Setter Property="Padding" Value="10,5"/>
+                                        <Setter Property="Margin" Value="0,1"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="ToolTip" Value="{Binding Title}"/>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock x:Name="Title" Text="{Binding Title}" TextTrimming="CharacterEllipsis" FontSize="13"
+                                                   Margin="{Binding Level, Converter={StaticResource OutlineIndent}}"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Level}" Value="1">
+                                                <Setter TargetName="Title" Property="FontWeight" Value="SemiBold"/>
+                                                <Setter TargetName="Title" Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Level}" Value="2">
+                                                <Setter TargetName="Title" Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <TextBlock x:Name="OutlineEmptyText" Style="{StaticResource CardSubtitle}" Margin="16,4,16,0"
+                                       VerticalAlignment="Top" TextWrapping="Wrap" TextTrimming="None"
+                                       Text="No headings yet. Lines that start with # appear here."/>
+                        </Grid>
+                    </DockPanel>
+                </Border>
+            </Border>
+
+            <Border x:Name="EditorCard" Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="16,12,16,6">
+                        <!-- Double-click the title to give this card the whole window; again to return to Split. -->
+                        <TextBlock x:Name="EditorTitle" DockPanel.Dock="Left" Style="{StaticResource CardTitle}" Text="Markdown"
+                                   Cursor="SizeWE" MouseLeftButtonDown="CardTitle_MouseLeftButtonDown"
+                                   ToolTip="Double-click to show only the editor; double-click again for the split view"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,0,0">
+                            <Button x:Name="EditorMergeButton" Style="{StaticResource MergeButton}" Click="Merge_Click"/>
+                            <Button x:Name="EditorReloadButton" Style="{StaticResource ReloadButton}" Click="Reload_Click"/>
+                            <!-- Unsaved changes. Hidden again when the text matches the file (saved, or undone back
+                                 to it). The transparent border gives the small dot a bigger area for its tooltip. -->
+                            <Border x:Name="UnsavedDot" Background="Transparent" Padding="4" Margin="0,0,2,0"
+                                    VerticalAlignment="Center" Visibility="Collapsed"
+                                    ToolTip="Unsaved changes. Press Ctrl+S to save.">
+                                <Ellipse Width="8" Height="8" Fill="#FFC83D" Stroke="#D9A000" StrokeThickness="1"/>
+                            </Border>
+                            <TextBlock x:Name="FileNameText" Style="{StaticResource CardSubtitle}" Text="Untitled"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <Grid>
+                        <!-- Draws the text in syntax colors behind the editor, whose own text is then transparent. -->
+                        <controls:MarkdownHighlightLayer x:Name="Highlighter"/>
+                        <TextBox x:Name="Editor" Style="{StaticResource EditorTextBox}"
+                                 AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                                 IsInactiveSelectionHighlightEnabled="True"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                 FontFamily="Cascadia Mono, Consolas" FontSize="13"
+                                 Padding="12,4,12,16" TextChanged="Editor_TextChanged"/>
+                        <!-- 12px left and right, the same as the preview page's margin. The placeholder adds the
+                             text box's own 2px inset so it lines up with typed text. -->
+                        <TextBlock IsHitTestVisible="False" Margin="14,4,14,0" TextWrapping="Wrap" FontSize="13"
+                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                   Text="Paste Markdown here, drop a .md file on the window, or use File › Open (Ctrl+O).">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text.Length, ElementName=Editor}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter x:Name="Splitter" Grid.Column="2" Grid.RowSpan="2" HorizontalAlignment="Stretch" Background="Transparent"/>
+
+            <Border x:Name="PreviewCard" Grid.Column="3" Grid.RowSpan="2" Style="{StaticResource Card}">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="16,12,16,6">
+                        <TextBlock x:Name="PreviewTitle" DockPanel.Dock="Left" Style="{StaticResource CardTitle}" Text="Preview"
+                                   Cursor="SizeWE" MouseLeftButtonDown="CardTitle_MouseLeftButtonDown"
+                                   ToolTip="Double-click to show only the preview; double-click again for the split view"/>
+                        <!-- Right-aligned info: "Words: 196 | Style: RDG". -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,0,0">
+                            <!-- Shown here instead of in the editor header only in Preview Only. -->
+                            <Button x:Name="PreviewMergeButton" Style="{StaticResource MergeButton}" Click="Merge_Click"/>
+                            <Button x:Name="PreviewReloadButton" Style="{StaticResource ReloadButton}" Click="Reload_Click"/>
+                            <TextBlock x:Name="WordCountText" Style="{StaticResource CardSubtitle}"/>
+                            <TextBlock Style="{StaticResource CardSubtitle}" Text="|" Margin="8,0"/>
+                            <TextBlock x:Name="PreviewStyleText" Style="{StaticResource CardSubtitle}" ToolTip="Change it from the Format menu"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <Grid>
+                        <!-- The preview stays white in dark mode: it shows what the recipient will see. -->
+                        <Border Margin="8,0,8,8" Background="White" CornerRadius="4" Padding="1"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                            <Grid>
+                                <!-- Chromium (WebView2). White behind the page too, so there's no dark flash while it starts. -->
+                                <wv2:WebView2 x:Name="Preview" DefaultBackgroundColor="White"/>
+                                <TextBlock x:Name="PreviewUnavailableText" Visibility="Collapsed" Margin="16" TextWrapping="Wrap"
+                                           FontSize="13" Foreground="#5F5E5C"/>
+                            </Grid>
+                        </Border>
+                        <!-- Line marker: an RDG Red bar in the 8px gutter left of the page, beside the caret line's row.
+                             It sits outside the web view on purpose: WPF can't draw on top of a web view. -->
+                        <Canvas x:Name="LineMarkerLayer" Margin="0,0,0,8" ClipToBounds="True" IsHitTestVisible="False">
+                            <Border x:Name="LineMarker" Width="3" CornerRadius="1.5" Background="#DC3F35"
+                                    Canvas.Left="3" Visibility="Collapsed"/>
+                        </Canvas>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <!-- Markdown cheat sheet. Docked rather than floating: WPF can't draw over the preview's web view.
+                 The outer border's width animates to slide it in; the content keeps a fixed width so it doesn't reflow. -->
+            <Border x:Name="CheatSheetPanel" Grid.Column="4" Grid.RowSpan="2" Width="0" ClipToBounds="True" Visibility="Collapsed">
+                <Border Style="{StaticResource Card}" Width="330" Margin="8,0,0,0" HorizontalAlignment="Left">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="16,10,8,2">
+                            <Button DockPanel.Dock="Right" Command="local:AppCommands.ToggleCheatSheet" ToolTip="Close (F1)"
+                                    Padding="6" Background="Transparent" BorderThickness="0">
+                                <TextBlock Style="{StaticResource Icon}" FontSize="12" Text="&#xE711;"/>
+                            </Button>
+                            <TextBlock Style="{StaticResource CardTitle}" Text="Markdown cheat sheet"/>
+                        </DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Style="{StaticResource CardSubtitle}" Margin="16,0,16,8"
+                                   Text="Click an example to insert it. Select text first to wrap it; headings, lists and quotes apply to the current line." TextWrapping="Wrap"/>
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6,0,6,8">
+                            <ItemsControl ItemsSource="{x:Static local:CheatSheet.Groups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,10,0,4">
+                                            <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Margin="10,4,0,0"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                            <Border Height="1" Margin="10,5,10,4" Background="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                                            <ItemsControl ItemsSource="{Binding Entries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <!-- Not focusable, so clicking keeps the editor's selection. -->
+                                                        <Button Click="CheatSheetEntry_Click" Focusable="False">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Grid>
+                                                                        <Border x:Name="Highlight" CornerRadius="6" Opacity="0"
+                                                                                Background="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                                        <ContentPresenter Margin="10,6"/>
+                                                                    </Grid>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding CanInsert}" Value="True"/>
+                                                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True"/>
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter TargetName="Highlight" Property="Opacity" Value="0.08"/>
+                                                                        </MultiDataTrigger>
+                                                                        <Trigger Property="IsPressed" Value="True">
+                                                                            <Setter TargetName="Highlight" Property="Opacity" Value="0.14"/>
+                                                                        </Trigger>
+                                                                        <DataTrigger Binding="{Binding CanInsert}" Value="True">
+                                                                            <Setter Property="Cursor" Value="Hand"/>
+                                                                            <Setter Property="ToolTip" Value="Click to insert"/>
+                                                                        </DataTrigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                            <StackPanel>
+                                                                <Border HorizontalAlignment="Left" CornerRadius="4" Padding="6,2"
+                                                                        Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                                                                    <TextBlock Text="{Binding Syntax}" FontFamily="Cascadia Mono, Consolas" FontSize="13"
+                                                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                                </Border>
+                                                                <TextBlock Text="{Binding Meaning}" TextWrapping="Wrap" FontSize="12" Margin="2,4,0,0"
+                                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

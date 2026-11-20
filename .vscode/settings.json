@@ -1,0 +1,5 @@
+{
+    // Load the solution, not every .csproj in the folder. WPF builds briefly create
+    // LandMark_*_wpftmp.csproj files here, which C# Dev Kit otherwise tries (and fails) to load.
+    "dotnet.defaultSolution": "LandMark.sln"
+}

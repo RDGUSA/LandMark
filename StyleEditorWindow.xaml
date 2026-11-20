@@ -1,0 +1,216 @@
+<Window x:Class="LandMark.StyleEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:LandMark.Controls"
+        Title="Customize Styles" Icon="Assets/app.ico" Width="880" Height="720" MinWidth="720" MinHeight="480"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+
+    <Window.Resources>
+        <controls:FontInUseConverter x:Key="FontInUse"/>
+        <controls:InverseBooleanConverter x:Key="Inverse"/>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,18,0,10"/>
+        </Style>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="Width" Value="170"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="DockPanel.Dock" Value="Left"/>
+        </Style>
+        <Style x:Key="TopLabel" TargetType="TextBlock" BasedOn="{StaticResource Label}">
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+        </Style>
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="2,4,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
+        </Style>
+        <Style x:Key="Row" TargetType="DockPanel">
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="LastChildFill" Value="False"/>
+        </Style>
+        <Style x:Key="FontRow" TargetType="DockPanel" BasedOn="{StaticResource Row}">
+            <Setter Property="LastChildFill" Value="True"/>
+        </Style>
+        <Style x:Key="SizeBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="80"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="20,16,20,20">
+        <!-- Dialog buttons -->
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+            <Button x:Name="SetDefaultButton" DockPanel.Dock="Left" Content="Set as Default" Click="SetDefault_Click"
+                    ToolTip="Use this style for new documents and documents without a style of their own"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="0,0,8,0"/>
+                <Button Content="Save" Click="Save_Click" MinWidth="90" Margin="0,0,8,0"
+                        ToolTip="Save your styles without changing the current document's style"/>
+                <Button Content="Use for This Document" Style="{StaticResource AccentButtonStyle}" IsDefault="True"
+                        Click="UseForDocument_Click" ToolTip="Save your styles and apply the selected one to the current document"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230"/>
+                <ColumnDefinition Width="24"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Style list -->
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Styles" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Content="New" Click="New_Click" Margin="0,0,6,0" ToolTip="New style based on the RDG style"/>
+                    <Button Content="Duplicate" Click="Duplicate_Click" Margin="0,0,6,0"/>
+                    <Button x:Name="DeleteButton" Content="Delete" Click="Delete_Click"/>
+                </StackPanel>
+                <TextBlock x:Name="DefaultText" DockPanel.Dock="Bottom" Style="{StaticResource Hint}" Margin="2,10,0,0"/>
+                <ListBox x:Name="StyleList" SelectionChanged="StyleList_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,2">
+                                <TextBlock Text="{Binding Name}"/>
+                                <TextBlock Text="Built-in" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <!-- Settings for the selected style -->
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                <StackPanel DataContext="{Binding SelectedItem, ElementName=StyleList}">
+                    <Border x:Name="BuiltInNotice" CornerRadius="6" Padding="12,8" Margin="0,0,0,4"
+                            Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                        <TextBlock TextWrapping="Wrap"
+                                   Text="Built-in styles can't be changed. Click Duplicate to make an editable copy."/>
+                    </Border>
+
+                    <StackPanel IsEnabled="{Binding IsBuiltIn, Converter={StaticResource Inverse}}">
+                        <TextBlock Text="General" Style="{StaticResource SectionHeader}"/>
+                        <DockPanel Style="{StaticResource FontRow}">
+                            <TextBlock Text="Name" Style="{StaticResource Label}"/>
+                            <TextBox x:Name="NameBox" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Text" Style="{StaticResource SectionHeader}"/>
+                        <DockPanel Style="{StaticResource FontRow}">
+                            <TextBlock Text="Font" Style="{StaticResource TopLabel}"/>
+                            <StackPanel>
+                                <TextBox Text="{Binding BodyFont, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="{Binding BodyFont, Converter={StaticResource FontInUse}}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Size (pt)" Style="{StaticResource Label}"/>
+                            <TextBox Style="{StaticResource SizeBox}" Text="{Binding BodySize, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Color" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding TextColor}"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Headings 1–2" Style="{StaticResource SectionHeader}"/>
+                        <DockPanel Style="{StaticResource FontRow}">
+                            <TextBlock Text="Font" Style="{StaticResource TopLabel}"/>
+                            <StackPanel>
+                                <TextBox Text="{Binding HeadingFont, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="{Binding HeadingFont, Converter={StaticResource FontInUse}}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Color" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding HeadingColor}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Heading 1 size (pt)" Style="{StaticResource Label}"/>
+                            <TextBox Style="{StaticResource SizeBox}" Text="{Binding Heading1Size, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Heading 2 size (pt)" Style="{StaticResource Label}"/>
+                            <TextBox Style="{StaticResource SizeBox}" Text="{Binding Heading2Size, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Headings 3–6" Style="{StaticResource SectionHeader}"/>
+                        <DockPanel Style="{StaticResource FontRow}">
+                            <TextBlock Text="Font" Style="{StaticResource TopLabel}"/>
+                            <StackPanel>
+                                <TextBox Text="{Binding SubheadingFont, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="{Binding SubheadingFont, Converter={StaticResource FontInUse}}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Color" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding SubheadingColor}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Heading 3 size (pt)" Style="{StaticResource Label}"/>
+                            <TextBox Style="{StaticResource SizeBox}" Text="{Binding Heading3Size, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="" Style="{StaticResource Label}"/>
+                            <CheckBox Content="Bold headings" IsChecked="{Binding BoldHeadings}"
+                                      ToolTip="Turn off for fonts that are already heavy, such as Franklin Gothic Demi"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Links and accents" Style="{StaticResource SectionHeader}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Link color" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding LinkColor}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Accent color" Style="{StaticResource Label}" ToolTip="Quote bars and horizontal rules"/>
+                            <controls:ColorField Hex="{Binding AccentColor}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Quote text color" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding QuoteTextColor}"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Tables and code" Style="{StaticResource SectionHeader}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Table header fill" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding TableHeaderBackground}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Table borders" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding BorderColor}"/>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FontRow}">
+                            <TextBlock Text="Code font" Style="{StaticResource TopLabel}"/>
+                            <StackPanel>
+                                <TextBox Text="{Binding CodeFont, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="{Binding CodeFont, Converter={StaticResource FontInUse}}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock Text="Code background" Style="{StaticResource Label}"/>
+                            <controls:ColorField Hex="{Binding CodeBackground}"/>
+                        </DockPanel>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                   Text="Fonts are listed in order of preference, separated by commas. The first one installed on this PC is used for the preview, Copy for Email and DOCX export."/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,67 @@
+<Window x:Class="LandMark.MessageDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LandMark" Icon="Assets/app.ico" Width="468" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" PreviewKeyDown="Window_PreviewKeyDown">
+
+    <!-- The app's own message box, in place of Windows' MessageBox: the same rounded frame as the About window,
+         with a close button only (no minimize or maximize), a fixed width, and the theme's brushes throughout, so
+         it follows Light, Dark and System changes while it's open. The margin leaves room for the shadow. -->
+    <Grid Margin="14">
+        <!-- Shadow on a separate layer, so the text isn't rendered through the effect and stays crisp. -->
+        <Border CornerRadius="10" Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="18" ShadowDepth="4" Direction="270" Opacity="0.28"/>
+            </Border.Effect>
+        </Border>
+
+        <Border CornerRadius="10" Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}" BorderThickness="1">
+            <DockPanel>
+                <!-- Buttons on the window's base color below the card, like a Windows 11 content dialog. -->
+                <Border DockPanel.Dock="Bottom" CornerRadius="0,0,10,10" Padding="24,16"
+                        BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+                    <!-- The app's order (as in the style editor): Cancel, then the alternative, then the primary
+                         (accent) button on the right. -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="CancelButton" MinWidth="104" Padding="14,6" Margin="0,0,8,0" Click="Close_Click"/>
+                        <Button x:Name="SecondaryButton" MinWidth="104" Padding="14,6" Margin="0,0,8,0" Click="Secondary_Click"/>
+                        <Button x:Name="PrimaryButton" MinWidth="104" Padding="14,6"
+                                Style="{StaticResource AccentButtonStyle}" Click="Primary_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <Border CornerRadius="10,10,0,0" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <DockPanel>
+                        <!-- Header doubles as the drag handle. -->
+                        <DockPanel DockPanel.Dock="Top" Background="Transparent" Margin="18,10,8,0"
+                                   MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                            <Button DockPanel.Dock="Right" Click="Close_Click" ToolTip="Close (Esc)" Focusable="False"
+                                    Padding="8,6" Background="Transparent" BorderThickness="0">
+                                <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11" Text="&#xE711;"/>
+                            </Button>
+                            <TextBlock Text="LandMark" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </DockPanel>
+
+                        <Grid Margin="24,8,28,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="IconGlyph" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="24"
+                                       VerticalAlignment="Top" Margin="0,1,16,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="HeadingText" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock x:Name="MessageText" FontSize="13" TextWrapping="Wrap" Margin="0,10,0,0"
+                                           LineHeight="20" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </DockPanel>
+                </Border>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

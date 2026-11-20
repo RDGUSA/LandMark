@@ -1,0 +1,5 @@
+# Store text with LF in the repo and let Git convert line endings on checkout.
+* text=auto
+
+*.ico binary
+*.png binary

@@ -1,0 +1,12 @@
+<Application x:Class="LandMark.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ThemeMode="System"
+             DispatcherUnhandledException="App_DispatcherUnhandledException">
+    <Application.Resources>
+        <!-- Shadow under menus and the color picker. Removed at startup on PCs without graphics hardware,
+             where it's drawn on the CPU and makes the pop-ups stutter (see App.OnStartup). -->
+        <DropShadowEffect x:Key="FlyoutShadow" BlurRadius="14" ShadowDepth="3" Direction="270" Opacity="0.18"/>
+        <!-- MenuBarItemBackgroundSelected (drop-down menu hover fill) is set from code: see App.UpdateMenuHighlight. -->
+    </Application.Resources>
+</Application>

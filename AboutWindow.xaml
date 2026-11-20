@@ -1,0 +1,82 @@
+<Window x:Class="LandMark.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About" Icon="Assets/app.ico" Width="484" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+
+    <Window.Resources>
+        <Style x:Key="Muted" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        </Style>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
+        </Style>
+    </Window.Resources>
+
+    <!-- Borderless with its own rounded frame: Windows 11 only rounds window corners when graphics
+         hardware is available, which isn't the case on every PC (or VM). The margin leaves room for the shadow. -->
+    <Grid Margin="14">
+        <!-- Shadow on a separate layer, so the text isn't rendered through the effect and stays crisp. -->
+        <Border CornerRadius="10" Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="18" ShadowDepth="4" Direction="270" Opacity="0.28"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Same layers as the editor panel: window base color plus the card fill. -->
+        <Border CornerRadius="10" Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}" BorderThickness="1">
+            <Border CornerRadius="10" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                <DockPanel>
+                    <!-- Header doubles as the drag handle. -->
+                    <DockPanel DockPanel.Dock="Top" Background="Transparent" Margin="18,10,8,0"
+                               MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                        <Button DockPanel.Dock="Right" Click="Close_Click" ToolTip="Close"
+                                Padding="8,6" Background="Transparent" BorderThickness="0">
+                            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11" Text="&#xE711;"/>
+                        </Button>
+                        <TextBlock Text="About" FontSize="12" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    </DockPanel>
+
+                    <StackPanel Margin="32,10,32,24">
+                        <!-- The app icon (LM badge) with the name and version beside it. -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                            <Image Source="Assets/app-256.png" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <StackPanel VerticalAlignment="Center" Margin="16,0,0,0">
+                                <TextBlock Text="LandMark" FontSize="30" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock x:Name="VersionText" Style="{StaticResource Muted}" Margin="0,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock FontSize="15" TextWrapping="Wrap" Margin="0,0,0,20" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="Markdown, made presentable. Write in plain text, then copy it into an email, export it to Word, or save it as clean plain text, styled to the RDG brand."/>
+
+                        <Border Height="1" Margin="0,0,0,16" Background="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+
+                        <TextBlock Text="Built with" Style="{StaticResource Label}"/>
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,14"
+                                   Text=".NET 10 and Windows, with no third-party packages."/>
+
+                        <TextBlock Text="Settings" Style="{StaticResource Label}"/>
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,24">
+                            <Hyperlink Click="SettingsLink_Click" ToolTip="Open the folder where your styles are saved">
+                                <Run x:Name="SettingsPath"/>
+                            </Hyperlink>
+                        </TextBlock>
+
+                        <Button Content="Close" Style="{StaticResource AccentButtonStyle}" MinWidth="96" HorizontalAlignment="Right"
+                                IsDefault="True" IsCancel="True"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Border>
+    </Grid>
+</Window>

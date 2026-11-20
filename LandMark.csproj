@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LandMark</RootNamespace>
+    <AssemblyName>LandMark</AssemblyName>
+    <Product>LandMark</Product>
+    <!-- LM badge (True Black, RDG Red bars, white point) at 16-256 px; Assets\app-256.png is the large version. -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <Resource Include="Assets\app-256.png" />
+    <Resource Include="Assets\ellipsis-red.png" />
+  </ItemGroup>
+
+  <!-- The one package: Microsoft's WebView2 SDK, for the Chromium-based preview and PDF export. The browser
+       itself is the WebView2 Runtime that ships with Windows 11 (and comes with Edge updates on Windows 10). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+  </ItemGroup>
+
+</Project>
