@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32;
 
-namespace LandMark;
+namespace LandMark.Services;
 
 /// <summary>
 /// Registers LandMark with Windows as an app that opens Markdown files, for the current user only (no admin rights).

@@ -1,7 +1,7 @@
-<Window x:Class="LandMark.AboutWindow"
+<Window x:Class="LandMark.Views.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="About" Icon="Assets/app.ico" Width="484" SizeToContent="Height"
+        Title="About" Icon="/Assets/app.ico" Width="484" SizeToContent="Height"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
 
@@ -48,7 +48,7 @@
                     <StackPanel Margin="32,10,32,24">
                         <!-- The app icon (LM badge) with the name and version beside it. -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
-                            <Image Source="Assets/app-256.png" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <Image Source="/Assets/app-256.png" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality"/>
                             <StackPanel VerticalAlignment="Center" Margin="16,0,0,0">
                                 <TextBlock Text="LandMark" FontSize="30" FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>

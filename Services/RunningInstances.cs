@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace LandMark;
+namespace LandMark.Services;
 
 /// <summary>
 /// Lets a newly started LandMark hand a file to a LandMark window that already has it open, so double-clicking

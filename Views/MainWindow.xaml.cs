@@ -12,11 +12,13 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using LandMark.Conversion;
 using LandMark.Markdown;
+using LandMark.Models;
+using LandMark.Services;
 using LandMark.Styling;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 
-namespace LandMark;
+namespace LandMark.Views;
 
 public partial class MainWindow : Window
 {

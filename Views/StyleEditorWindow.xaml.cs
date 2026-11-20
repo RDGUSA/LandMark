@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using LandMark.Styling;
 
-namespace LandMark;
+namespace LandMark.Views;
 
 /// <summary>
 /// Edits working copies of the styles; nothing changes in the library until Save or

@@ -454,10 +454,20 @@ framework-dependent, so it uses the .NET 10 Desktop Runtime installed on the PC.
 - `Controls/MarkdownHighlightLayer.cs`: draws the editor's text in syntax colors. The text box's own text is
   transparent while colors are on; the layer behind it draws each visible line where the text box laid it out.
 - `Conversion/`: plain text, email HTML and DOCX writers, all working from the model.
-- `TextMerge.cs`: the three-way line merge behind Merge.
-- `MainWindow.xaml`: the UI. The preview is a WebView2 (Chromium) control; the page and its scroll-sync script are in
-  `Conversion/EmailHtml.cs` (`Page`), and PDF export prints that same page.
-- `MessageDialog.xaml`: the app's own message window.
+- `Styling/`: document styles, the syntax colors, the saved style library and the installed-fonts list.
+- `Views/`: the windows and the menu commands.
+  - `MainWindow.xaml`: the UI. The preview is a WebView2 (Chromium) control; the page and its scroll-sync script are
+    in `Conversion/EmailHtml.cs` (`Page`), and PDF export prints that same page.
+  - `MessageDialog.xaml`: the app's own message window.
+  - `StyleEditorWindow.xaml` and `AboutWindow.xaml`: Customize Styles and About.
+  - `AppCommands.cs`: the app's own menu commands.
+- `Models/`: the app settings (`AppSettings.cs`) and the cheat-sheet entries (`CheatSheet.cs`).
+- `Services/`: work with no UI of its own.
+  - `TextMerge.cs`: the three-way line merge behind Merge.
+  - `AppDataFolder.cs`: the `%AppData%\LandMark` folder.
+  - `FileAssociation.cs`: registering LandMark as an app for Markdown files.
+  - `RunningInstances.cs`: handing a file to the window that already has it open.
+- `App.xaml`: startup, and the app-wide resources.
 - `docs/`: the branded HTML user guide, and the images this README uses.
 
 ### Supported Markdown

@@ -1,4 +1,4 @@
-namespace LandMark;
+namespace LandMark.Services;
 
 /// <summary>
 /// Three-way merge of text, line by line (the diff3 method that version control uses). Given the text both sides

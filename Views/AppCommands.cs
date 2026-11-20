@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace LandMark;
+namespace LandMark.Views;
 
 /// <summary>App-specific menu commands. File/Edit basics use the built-in ApplicationCommands.</summary>
 public static class AppCommands

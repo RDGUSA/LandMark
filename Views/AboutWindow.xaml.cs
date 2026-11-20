@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using LandMark.Styling;
 
-namespace LandMark;
+namespace LandMark.Views;
 
 public partial class AboutWindow : Window
 {

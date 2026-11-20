@@ -1,7 +1,8 @@
 using System.IO;
 using System.Text.Json;
+using LandMark.Services;
 
-namespace LandMark;
+namespace LandMark.Models;
 
 /// <summary>App preferences other than document styles. Saved to %AppData%\LandMark\settings.json.</summary>
 public sealed class AppSettings

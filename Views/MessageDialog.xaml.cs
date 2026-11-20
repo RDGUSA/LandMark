@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace LandMark;
+namespace LandMark.Views;
 
 /// <summary>The app's own message box, styled like the rest of LandMark (see MessageDialog.xaml).</summary>
 public partial class MessageDialog : Window

@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace LandMark;
+namespace LandMark.Services;
 
 /// <summary>
 /// %AppData%\LandMark, where settings and styles are saved. The app was called Landmarks before, so on first run

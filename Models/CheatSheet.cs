@@ -1,4 +1,4 @@
-namespace LandMark;
+namespace LandMark.Models;
 
 /// <summary>
 /// One cheat-sheet example. <see cref="Template"/> is inserted into the editor with {0} replaced by
